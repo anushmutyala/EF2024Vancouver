@@ -13,15 +13,13 @@ export default function Header({title, value, size = 'small', colorClassName, su
   switch(size) {
     case 'small': {
       return (
-        <div className="flex flex-col justify-between py-4 max-h-[150px] min-w-[200px] group bg-accent2 border-2 border-accent2 rounded-lg hover:scale-105 hover:shadow-md duration-300">
-          <div className="flex text-center items-center justify-center">
-            <h3 className="text-2xl text-center text-gray-100 duration-300 font-semibold select-none">
-              {title}
-            </h3>
-          </div>
-          <div className="flex text-gray-100 duration-300 text-center font-bold text-5xl items-center justify-center pb-6 select-none">
+        <div className="flex flex-row mt-2 py-2 border-2 border-sage2 rounded-xl">
+          <span className="text-md pl-4 text-gray-100 font-bold select-none">
+            {title}
+          </span>
+            <span className="text-md pr-4 text-gray-100 font-semibold pl-2">
             {value}
-          </div>
+          </span>
         </div>
       );
     }
@@ -32,8 +30,7 @@ export default function Header({title, value, size = 'small', colorClassName, su
             {title}
           </h3>
           <div className="flex flex-col px-4 select-none">
-            <span className="text-gray-200 text-align-left font-semibold text-lg 2xl:text-xl">{value}</span>
-            <span className="text-gray-300 text-align-left font-semibold text-sm 2xl:text-md -mt-1">{subvalue}</span>
+            <span className="text-gray-100 text-align-left font-semibold text-sm 2xl:text-md -mt-1">{subvalue}</span>
           </div>
         </div>
       );
