@@ -28,3 +28,25 @@
   border: 1px solid transparent; /* Optional: Add some space around the thumb */
   background-clip: content-box; /* Optional: Ensure the border is visible */
 }
+
+.arrow-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px; /* Adjust as needed */
+}
+
+.arrow {
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 5px solid #FFFFFF /* gray-800 color */
+}
+
+.arrow-line {
+  width: 2px;
+  height: 50px; /* Adjust as needed */
+  background-color: #FFFFFF; /* white color */
+  margin: 0 auto;
+}
