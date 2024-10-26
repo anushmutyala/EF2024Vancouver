@@ -11,7 +11,7 @@ export default function Home() {
       <div className="py-12 px-12">
           <Accordion className="max-w-lg border-2 border-black2 rounded-lg" type="single" collapsible>
             <AccordionItem value="item-1" className="group data-[state=open]:bg-black1 hover:bg-black2 rounded-lg duration-300">
-              <AccordionTrigger className="duration-200">
+              <AccordionTrigger className="duration-300">
                 <b>Step 1</b> <b className="pt-1 pb-2 font-normal">Short description of the step</b>
               </AccordionTrigger>
               <AccordionContent className="group-data-[state=open]:h-[65dvh] overflow-auto pr-4">
