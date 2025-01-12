@@ -8,7 +8,7 @@ import { data } from "../page";
 
 export default function Step1() {
     return (
-    <Accordion className="min-w-lg border-2 border-black2 rounded-lg" type="single" collapsible>
+    <Accordion className="min-w-lg max-w-3xl border-2 border-black2 rounded-lg" type="single" collapsible>
         <AccordionItem value="item-1" className="group data-[state=open]:bg-black1 hover:bg-black2 rounded-lg duration-300">
           <AccordionTrigger className="duration-300">
             <b>Step 4</b> <b className="pt-1 pb-2 font-normal text-center">{data[1].progression}</b>

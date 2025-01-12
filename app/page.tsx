@@ -32,7 +32,7 @@ export default function Home() {
         </div>
       </nav>
       <h1 className="text-5xl font-bold uppercase text-gray-100 pl-7 pb-8">LEGO AT-AT Walker Construction Guide</h1>
-      <div className="flex flex-row justify-start items-center w-full space-x-48">
+      <div className="flex flex-col justify-start items-center w-full space-y-36">
       <Accordion className="min-w-lg max-w-xl border-2 border-black2 rounded-lg" type="single" collapsible>
         <AccordionItem value="item-1" className="group data-[state=open]:bg-black1 hover:bg-black2 rounded-lg duration-300">
           <AccordionTrigger className="duration-300">
@@ -45,7 +45,7 @@ export default function Home() {
             <div className="border-sage2 border-[0.75px] rounded-lg" /> 
             <div className="flex py-4">
               <div className="w-1/3 rounded-lg">
-                <Image className="rounded-lg" src={image1} alt="Description 1" width={100} height={100} layout="responsive" />
+                <Image className="rounded-lg" src={image4} alt="Description 1" width={100} height={100} layout="responsive" />
               </div>
               <div className="w-2/3 pl-4 flex items-center">
                 <ul className="list-disc pl-5 space-y-1">
@@ -59,7 +59,7 @@ export default function Home() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-      <div className="flex flex-col space-y-8 min-w-sm">
+      <div className="flex flex-row space-x-8 min-w-sm">
         <Step2 value="a" index="1" image={image2} tools="Scissors, Manual" desc1="Use the Scissors to cut open bags 1-3." desc2="Read the Manual and begin with step 1-5."/>
         <Step2 value="b" index="2" image={image3} tools="Yellow bricks, Blue bricks, Red bricks, Manual" desc1="Use the blue and yellow bricks and the Manual to complete steps 6-11." desc2="Read the Manual and use the red bricks to begin with steps 12 and 13."/>
         <Step2 value="c" index="3" image={image4} tools="Manual" desc1="Take special note of the following pieces." desc2="Follow the Manual carefully for steps 14 and 15."/>
