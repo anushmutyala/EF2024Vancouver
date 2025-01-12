@@ -1,10 +1,22 @@
+"use client"
+
 import Image from "next/image";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./accordion";
 import Header from "./Header";
+import { Key, useEffect, useState } from "react";
 import { data } from "../page";
 
-export default function Step2(props: {value: any, index: any, image: any, tools: any, desc1: any, desc2: any}) {
-    return (
+export default function Step(props: {value: any, index: any, image: any, tools: any, desc: any}) {
+  const [description, setDescription] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (props.desc) {
+      const items = props.desc.split('* ').filter((item: string) => item.trim() !== '');
+      setDescription(items);
+    }
+}, [props.desc]);
+  
+  return (
     <Accordion className="min-w-md max-w-3xl border-2 border-black2 rounded-lg" type="single" collapsible>
         <AccordionItem value={`item-${props.index}`} className="group data-[state=open]:bg-black1 hover:bg-black2 rounded-lg duration-300">
           <AccordionTrigger className="duration-300">
@@ -21,8 +33,9 @@ export default function Step2(props: {value: any, index: any, image: any, tools:
                 </div>
                 <div className="w-2/3 pl-4 flex items-center">
                   <ul className="list-disc pl-5 space-y-1">
-                    <li className="text-md text-gray-100">{props.desc1}</li>
-                    <li className="text-md text-gray-100">{props.desc2}</li>
+                    {description.map((item: string, index: Key) => (
+                      <li key={index} className="text-md text-gray-100 font-normal">{item}</li>
+                    ))}
                   </ul>
                 </div>
               </div>

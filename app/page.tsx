@@ -1,13 +1,18 @@
+"use client"
+
 import Image from "next/image";
 import image1 from "./assets/image1.png";
 import image2 from "./assets/image2.jpg";
 import image3 from "./assets/image3.jpg";
 import image4 from "./assets/image4.jpg";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./components/accordion";
+import { useEffect, useState } from 'react';
 import Header from "./components/Header";
 import Step2 from "./components/step2";
 import Step3 from "./components/step3";
 import Step4 from "./components/step4";
+import Step from "./components/step";
+import supabase from "../lib/supabase";
 
 export type Data = {
   raw_imgs: any;
@@ -19,9 +24,54 @@ export type Data = {
   time_interval: any;
   prev_step_id: any;
   next_step_id: any;
+  desc: string;
 }
 
 export default function Home() {
+  const [project, setProject] = useState<Project | undefined>();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  type Project = {
+    id: string;
+    title: string;
+    progression: string;
+    Steps: {
+      title: string;
+      tools: string;
+      action: string;
+      raw_img: string;
+    }[];
+  }
+
+  const getProject = async () => {
+    try {
+      setIsLoading(true);
+      const id = "9b804615-a358-406d-84a6-695537d47ad2"
+      const res = await fetch(`/api/get_project?projectId=${id}`);
+      const response = await res.json();
+      console.log("Full response:", response);
+      if (response && response.length > 0) {
+        setProject(response[0]);
+        console.log("Project data:", response[0]);
+        if (response[0].Steps.length > 0) {
+          console.log("First step action:", response[0].Steps[0].action); 
+        } else {
+          console.log("Steps array is empty or undefined");
+        }
+      } else {
+        console.log("No project data found");
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    };
+  }
+
+  useEffect(() => {
+    getProject();
+  }, [])
+
   return (
     <div className="flex flex-col justify-start items-start bg-black1 h-dvh p-12 w-full overflow-x-auto space-y-12">
       <nav className="w-full flex justify-between items-center px-8 bg-black1 text-gray-100">
@@ -32,8 +82,8 @@ export default function Home() {
         </div>
       </nav>
       <h1 className="text-5xl font-bold uppercase text-gray-100 pl-7 pb-8">LEGO AT-AT Walker Construction Guide</h1>
-      <div className="flex flex-row justify-start items-center w-full space-x-48">
-      <Accordion className="min-w-lg max-w-xl border-2 border-black2 rounded-lg" type="single" collapsible>
+      <div className="flex flex-col justify-start items-center w-full space-y-48">
+      <Accordion className="min-w-lg max-w-3xl border-2 border-black2 rounded-lg" type="single" collapsible>
         <AccordionItem value="item-1" className="group data-[state=open]:bg-black1 hover:bg-black2 rounded-lg duration-300">
           <AccordionTrigger className="duration-300">
             <b>Step 1</b> <b className="pt-1 pb-2 font-normal text-center">{data[0].progression}</b>
@@ -59,13 +109,24 @@ export default function Home() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-      <div className="flex flex-col space-y-8 min-w-sm">
+      <div className="flex flex-row space-x-8">
         <Step2 value="a" index="1" image={image2} tools="Scissors, Manual" desc1="Use the Scissors to cut open bags 1-3." desc2="Read the Manual and begin with step 1-5."/>
         <Step2 value="b" index="2" image={image3} tools="Yellow bricks, Blue bricks, Red bricks, Manual" desc1="Use the blue and yellow bricks and the Manual to complete steps 6-11." desc2="Read the Manual and use the red bricks to begin with steps 12 and 13."/>
         <Step2 value="c" index="3" image={image4} tools="Manual" desc1="Take special note of the following pieces." desc2="Follow the Manual carefully for steps 14 and 15."/>
       </div>
-      <Step3/>
+      <Step3 value="a" index="4" image={image2} tools="Scissors, Manual" desc1="testing" desc2="Read the Manual and begin with step 1-5."/>
       <Step4/>
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : project ? (
+        <Step 
+          value="a"
+          index="4"
+          image={project.Steps[0]?.raw_img}
+          tools={project.Steps[0]?.tools}
+          desc={project.Steps[0]?.action}
+        />
+      ) : null}
     </div>
   </div>
   );
@@ -81,7 +142,8 @@ export const data: Data[] = [
       user_id: "user_who_contributed",
       time_interval: "2024-10-26 21:05:11.990211 to 2024-10-26 21:05:16.130469",
       prev_step_id: "",
-      next_step_id: "step_002"
+      next_step_id: "step_002",
+      desc: "* Prepare a big, flat area as your workspace. * Take the contents out of the Lego Box. * Read the Manual and ensure all pieces are present."
   },
   {
       raw_imgs: [],
@@ -92,7 +154,8 @@ export const data: Data[] = [
       user_id: "user_who_contributed",
       time_interval: "2024-10-26 21:05:16.130469 to 2024-10-26 21:05:23.416128",
       prev_step_id: "step_001",
-      next_step_id: "step_003"
+      next_step_id: "step_003",
+      desc: ""
   },
   {
       raw_imgs: [],
@@ -103,7 +166,8 @@ export const data: Data[] = [
       user_id: "user_who_contributed",
       time_interval: "2024-10-26 21:05:11.990211 to 2024-10-26 21:05:16.130469",
       prev_step_id: "",
-      next_step_id: "step_002"
+      next_step_id: "step_002",
+      desc: ""
   },
   {
     raw_imgs: [],
@@ -114,7 +178,8 @@ export const data: Data[] = [
     user_id: "user_who_contributed",
     time_interval: "2024-10-26 21:05:11.990211 to 2024-10-26 21:05:16.130469",
     prev_step_id: "",
-    next_step_id: "step_002"
+    next_step_id: "step_002",
+    desc: ""
 },
 {
     raw_imgs: [],
@@ -125,7 +190,8 @@ export const data: Data[] = [
     user_id: "user_who_contributed",
     time_interval: "2024-10-26 21:05:18.431565 to 2024-10-26 21:05:20.774452",
     prev_step_id: "step_002",
-    next_step_id: "step_004"
+    next_step_id: "step_004",
+    desc: ""
 },
 {
     raw_imgs: [],
@@ -136,7 +202,8 @@ export const data: Data[] = [
     user_id: "user_who_contributed",
     time_interval: "2024-10-26 21:05:20.774452 to 2024-10-26 21:05:23.416128",
     prev_step_id: "step_003",
-    next_step_id: null
+    next_step_id: null,
+    desc: ""
 },
   {
       raw_imgs: [],
@@ -147,7 +214,8 @@ export const data: Data[] = [
       user_id: "user_who_contributed",
       time_interval: "2024-10-26 21:05:11.990211 to 2024-10-26 21:05:16.130469",
       prev_step_id: null,
-      next_step_id: "step_002"
+      next_step_id: "step_002",
+      desc: ""
   },
   {
       raw_imgs: [],
@@ -158,7 +226,8 @@ export const data: Data[] = [
       user_id: "user_who_contributed",
       time_interval: "2024-10-26 21:05:16.130469 to 2024-10-26 21:05:18.431565",
       prev_step_id: "step_001",
-      next_step_id: "step_003"
+      next_step_id: "step_003",
+      desc: ""
   },
   {
       raw_imgs: [],
@@ -169,7 +238,8 @@ export const data: Data[] = [
       user_id: "user_who_contributed",
       time_interval: "2024-10-26 21:05:18.431565 to 2024-10-26 21:05:20.774452",
       prev_step_id: "step_002",
-      next_step_id: "step_004"
+      next_step_id: "step_004",
+      desc: ""
   },
   {
       raw_imgs: [],
@@ -180,6 +250,7 @@ export const data: Data[] = [
       user_id: "user_who_contributed",
       time_interval: "2024-10-26 21:05:20.774452 to 2024-10-26 21:05:23.416128",
       prev_step_id: "step_003",
-      next_step_id: null
+      next_step_id: null,
+      desc: ""
   }
 ]
