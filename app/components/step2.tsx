@@ -5,8 +5,8 @@ import { data } from "../page";
 
 export default function Step2(props: {value: any, index: any, image: any, tools: any, desc1: any, desc2: any}) {
     return (
-    <Accordion className="min-w-md border-2 border-black2 rounded-lg" type="single" collapsible>
-        <AccordionItem value="item-1" className="group data-[state=open]:bg-black1 hover:bg-black2 rounded-lg duration-300">
+    <Accordion className="min-w-md rounded-lg" type="single" collapsible>
+        <AccordionItem value="item-1" className="group data-[state=open]:bg-black1 hover:bg-black2 border-2 border-black2 rounded-lg duration-300">
           <AccordionTrigger className="duration-300">
             <b>Step 2<span>{props.value}</span></b> <b className="pt-1 pb-2 font-normal text-center">{data[props.index].progression}</b>
           </AccordionTrigger>
