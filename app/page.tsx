@@ -9,10 +9,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./
 import { useEffect, useState } from 'react';
 import Header from "./components/Header";
 import Step2 from "./components/step2";
-import Step3 from "./components/step3";
-import Step4 from "./components/step4";
 import Step from "./components/step";
-import supabase from "../lib/supabase";
 
 export type Data = {
   raw_imgs: any;
@@ -28,19 +25,23 @@ export type Data = {
 }
 
 export default function Home() {
-  const [project, setProject] = useState<Project | undefined>();
+  const [project, setProject] = useState<Project>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  type Step = {
+    title: string;
+    tools: string[];
+    action: string;
+    raw_img: {
+      image_data: string;
+    };
+  };
 
   type Project = {
     id: string;
     title: string;
     progression: string;
-    Steps: {
-      title: string;
-      tools: string;
-      action: string;
-      raw_img: string;
-    }[];
+    Steps: Step[];
   }
 
   const getProject = async () => {
@@ -49,15 +50,15 @@ export default function Home() {
       const id = "9b804615-a358-406d-84a6-695537d47ad2"
       const res = await fetch(`/api/get_project?projectId=${id}`);
       const response = await res.json();
-      console.log("Full response:", response);
       if (response && response.length > 0) {
-        setProject(response[0]);
-        console.log("Project data:", response[0]);
-        if (response[0].Steps.length > 0) {
-          console.log("First step action:", response[0].Steps[0].action); 
-        } else {
-          console.log("Steps array is empty or undefined");
+        const projectData = response[0];
+
+        if (projectData.Steps && typeof projectData.Steps === 'object' && !Array.isArray(projectData.Steps)) {
+          projectData.Steps = Object.values(projectData.Steps);
         }
+
+        setProject(projectData);
+
       } else {
         console.log("No project data found");
       }
@@ -111,22 +112,21 @@ export default function Home() {
       </Accordion>
       <div className="flex flex-row space-x-8">
         <Step2 value="a" index="1" image={image2} tools="Scissors, Manual" desc1="Use the Scissors to cut open bags 1-3." desc2="Read the Manual and begin with step 1-5."/>
-        <Step2 value="b" index="2" image={image3} tools="Yellow bricks, Blue bricks, Red bricks, Manual" desc1="Use the blue and yellow bricks and the Manual to complete steps 6-11." desc2="Read the Manual and use the red bricks to begin with steps 12 and 13."/>
-        <Step2 value="c" index="3" image={image4} tools="Manual" desc1="Take special note of the following pieces." desc2="Follow the Manual carefully for steps 14 and 15."/>
+        <Step2 value="b" index="1" image={image3} tools="Yellow bricks, Blue bricks, Red bricks, Manual" desc1="Use the blue and yellow bricks and the Manual to complete steps 6-11." desc2="Read the Manual and use the red bricks to begin with steps 12 and 13."/>
+        <Step2 value="c" index="1" image={image4} tools="Manual" desc1="Take special note of the following pieces." desc2="Follow the Manual carefully for steps 14 and 15."/>
       </div>
-      <Step3 value="a" index="4" image={image2} tools="Scissors, Manual" desc1="testing" desc2="Read the Manual and begin with step 1-5."/>
-      <Step4/>
       {isLoading ? (
-        <div>Loading...</div>
-      ) : project ? (
+        <div><h3 className="text-3xl font-bold uppercase text-gray-100">Loading...</h3></div>
+      ) : project && project.Steps[0] ? (
         <Step 
           value="a"
-          index="4"
-          image={project.Steps[0]?.raw_img}
-          tools={project.Steps[0]?.tools}
-          desc={project.Steps[0]?.action}
+          index={1}
+          title={project.Steps[0]}
+          image={project.Steps[3]}
+          tools={project.Steps[1]}
+          desc={project.Steps[2]}
         />
-      ) : null}
+      ) : <></>}
     </div>
   </div>
   );
