@@ -19,22 +19,17 @@ from pprint import pprint
 
 # per img schema -> img_idx will be inserted after openai call
 img_schema = """{
-    "tools": ["list of tools in use in this image"],
-    "action": "action/operation being performed in this image",
+    "tools": [list of tools in use in this image],
+    "action": action/operation being performed in this image, should be in jot form where every new point starts with a '* ',
+    "id": idx of img in Frames table, will always be ordered sequentially in order of when the img was taken 
 }"""
 
 #per step schema 
 step_schema = """{
-    "title": "Step title",
-    "progression": "what progress is being made in this step",
-    "substeps": [ (some steps may just be independent, single substep)
-        {
-            "title": "Substep title",
-            "tools": ["list of tools in use in this image"],
-            "action": "action/operation being performed in this image",
-            "img_idx": "idx of img in frames table"
-        }
-    ]
+    "id": idx of step in Steps table, will always be ordered sequentially in order of when the step was taken
+    "title": Step title,
+    "progression": what progress is being made in this step,
+    "substeps": [list of ids of image frames from Frames table that are part of this step (min 1, max 3 substeps per step -> if exceeding max substep limit, create new steps)],
 }"""
 
 def encode_image(image_path):
@@ -78,16 +73,88 @@ def getImageData(client, base64_image, description_text, target_schema, action_c
     max_tokens=300
     )
     
-    #print("resposne choice", response.choices)
+    # print("response choice", response.choices)
     # data.append(response.choices)
     
     json_str = re.search(r'```json\n(.*?)\n```', response.choices[0].message.content, re.DOTALL).group(1)
-
-    # Parse the extracted JSON string
+   
     json_data = json.loads(json_str)
+    
     # json_data["raw_img"] = base64_image
     
     return json_data
+
+def combine_img_frames(res):
+    string_img_data = [] # jsons of image frames and metadata -> will follow schema 2
+    for img_data in res:
+        string_img_data.append(json.dumps(img_data))
+
+    # print(string_img_data[0])
+
+    # merge all image data into one text blob
+    combined_img_data = ""
+    for img_data in string_img_data:
+        combined_img_data += img_data
+
+    return combined_img_data
+
+def generate_steps(client, img_frames):
+    response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {
+            "role": "system", 
+            "content": "You are part of an application that helps engineers document their build process. By analyzing images throughout their workday, you will integrate into an application that generates a flowchart of the step by step procedure for their project."
+        },
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text", 
+                    "text": """
+                    I now have an array of objects per image captured that were taken while I was working through the project that follows the schema below: 
+                    {}
+                    Here are the combined image objects:
+                    {}
+                    Your task is to consolidate all the image objects and make a logical timeline by grouping together image objects into steps.
+                    Please generate a new json object that captures all the steps in the timeline in the schema format provided:
+                    {}
+                    """.format(img_schema, img_frames, step_schema),
+                }
+        ],
+        }
+    ],
+    max_tokens=600,
+    )
+
+    print(response.choices[0].message.content)
+    # json_str = re.search(r'```(?:json)?\n(.*?)\n```', response.choices[0].message.content, re.DOTALL).group(1)
+    # json_str = re.search(r'```json\n(.*?)\n```', response.choices[0].message.content, re.DOTALL).group(1)
+
+    # Simulated response from the API
+    response_content = response.choices[0].message.content
+
+    # Regular expression to capture JSON between triple backticks
+    match = re.search(r'```json\n(.*?)\n```', response_content, re.DOTALL)
+
+    if match:
+        # Extract the JSON string
+        json_str = match.group(1)
+
+        try:
+            # Parse the JSON string
+            json_data = json.loads(json_str)
+            print("Extracted JSON object:", json_data)
+
+            # You can now append the JSON data to the steps list or use it elsewhere
+            steps = json_data
+        except json.JSONDecodeError as e:
+            print("Failed to parse JSON:", e)
+    else:
+        print("No JSON found in the response. Here is the raw response:")
+        print(response_content)
+    
+    return steps
 
 
 
