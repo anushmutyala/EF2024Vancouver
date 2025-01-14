@@ -5,7 +5,7 @@ import time
 # Set the server URL to point to the local server
 SERVER_URL = "http://192.168.1.10:5000/upload_video"  # No need to change anything else
 
-camera = cv2.VideoCapture(1)
+camera = cv2.VideoCapture(0)
 print("got capture")
 
 while True:
