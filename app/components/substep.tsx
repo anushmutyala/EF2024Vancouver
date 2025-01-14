@@ -5,7 +5,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./
 import Header from "./Header";
 import { Key, useEffect, useState } from "react";
 
-export default function Step(props: {value: any, index: any, title: any, image: any, tools: any, desc: any}) {
+export default function Substep(props: {value: any, title: any, image: any, tools: any, desc: any}) {
   const [description, setDescription] = useState<string[]>([]);
 
   useEffect(() => {
@@ -29,13 +29,15 @@ export default function Step(props: {value: any, index: any, title: any, image: 
     return base64String;
   };
 
+  const accordionValue = `step-${props.value}`;
+
   return (
-    <Accordion className="min-w-md max-w-3xl border-2 border-black2 rounded-lg" type="single" collapsible>
-        <AccordionItem value={`item-${props.index}`} className="group data-[state=open]:bg-black1 hover:bg-black2 rounded-lg duration-300">
+    <Accordion className="min-w-md max-w-3xl" type="single" collapsible>
+        <AccordionItem value={accordionValue} className="border-2 border-black2 rounded-lg data-[state=open]:bg-black1 hover:bg-black2 transition-all duration-300">
           <AccordionTrigger className="duration-300">
-            <b>Step 2<span>{props.value}</span></b> <b className="pt-1 pb-2 font-normal text-center">{props.title}</b>
+            <b>Step <span>{props.value}</span></b> <b className="pt-1 pb-2 font-normal text-center">{props.title}</b>
           </AccordionTrigger>
-          <AccordionContent className="group-data-[state=open]:h-fit overflow-auto pr-4 ">
+          <AccordionContent className="overflow-auto pr-4 ">
           <div className="flex flex-col space-y-4">
             <Header title="Tools: " value={formatTools(props.tools)} size="small" colorClassName="accent1" />
             <h3 className="text-2xl font-semibold text-center text-gray-100 pt-4">Action Items</h3>

@@ -25,12 +25,14 @@ export default function Header({title, value, size = 'small', colorClassName, su
     }
     case 'medium': {
       return (
-        <div className="flex flex-col justify-between py-4 min-h-[200px] min-w-[200px] max-w-[250px] 2xl:max-w-[275px] group bg-accent3 border-2 border-accent3 rounded-lg hover:scale-105 hover:shadow-md duration-300">
-          <h3 className="flex px-4 text-gray-100 text-align-left font-semibold text-lg 2xl:text-xl items-center justify-center select-none">
-            {title}
+        <div className="min-w-4xl border-2 border-black2 rounded-lg p-4 mb-16">
+          <h3 className="flex px-4 text-sage2 text-align-left font-semibold text-2xl items-center justify-center select-none">
+            Step {title}
           </h3>
-          <div className="flex flex-col px-4 select-none">
-            <span className="text-gray-100 text-align-left font-semibold text-sm 2xl:text-md -mt-1">{subvalue}</span>
+          <div className="flex flex-col px-4 justify-center items-center select-none pt-2">
+            <span className="text-gray-100 text-align-center font-bold text-lg">{value}</span>
+            <hr className="border-black2 border-[0.75px] rounded-lg w-full mt-4" />
+            <span className="text-gray-100 text-align-center font-normal text-lg pt-4">{subvalue}</span>
           </div>
         </div>
       );

@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 import supabase from "@/lib/supabase";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const projectId = searchParams.get('projectId');
+export async function GET() {
 
   try {
     const { data, error } = await supabase
@@ -12,9 +10,15 @@ export async function GET(request: Request) {
         id,
         title,
         progression,
-        Steps(title, tools, action, raw_img)
+        Steps (
+          id,
+          title, 
+          tools, 
+          action, 
+          raw_img
+        )
       `)
-      .eq('id', projectId);
+      .order('id');
     
     if (error) {
       console.error("Error from the project fetch:", error);

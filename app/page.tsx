@@ -1,40 +1,19 @@
 "use client"
 
-import Image from "next/image";
-import image1 from "./assets/image1.png";
-import image2 from "./assets/image2.jpg";
-import image3 from "./assets/image3.jpg";
-import image4 from "./assets/image4.jpg";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./components/accordion";
 import { useEffect, useState } from 'react';
 import Header from "./components/Header";
-import Step2 from "./components/step2";
-import Step from "./components/step";
-
-export type Data = {
-  raw_imgs: any;
-  img_ids: any;
-  progression: any;
-  step_index: any;
-  step_id: any;
-  user_id: any;
-  time_interval: any;
-  prev_step_id: any;
-  next_step_id: any;
-  desc: string;
-}
+import Substep from "./components/substep";
 
 export default function Home() {
-  const [project, setProject] = useState<Project>();
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   type Step = {
     title: string;
     tools: string[];
     action: string;
-    raw_img: {
-      image_data: string;
-    };
+    raw_img: string;
   };
 
   type Project = {
@@ -47,17 +26,14 @@ export default function Home() {
   const getProject = async () => {
     try {
       setIsLoading(true);
-      const id = "9b804615-a358-406d-84a6-695537d47ad2"
-      const res = await fetch(`/api/get_project?projectId=${id}`);
+      const res = await fetch(`/api/get_project`);
       const response = await res.json();
       if (response && response.length > 0) {
-        const projectData = response[0];
-
-        if (projectData.Steps && typeof projectData.Steps === 'object' && !Array.isArray(projectData.Steps)) {
-          projectData.Steps = Object.values(projectData.Steps);
-        }
-
-        setProject(projectData);
+        const projectsData = response.map((project: any) => ({
+          ...project,
+          Steps: Array.isArray(project.Steps) ? project.Steps : Object.values(project.Steps || {})
+        }));
+        setProjects(projectsData);
 
       } else {
         console.log("No project data found");
@@ -83,8 +59,8 @@ export default function Home() {
         </div>
       </nav>
       <h1 className="text-5xl font-bold uppercase text-gray-100 pl-7 pb-8">LEGO AT-AT Walker Construction Guide</h1>
-      <div className="flex flex-col justify-start items-center w-full space-y-48">
-      <Accordion className="min-w-lg max-w-3xl border-2 border-black2 rounded-lg" type="single" collapsible>
+      <div className="flex flex-col justify-start items-center w-full">
+      {/* <Accordion className="min-w-lg max-w-3xl border-2 border-black2 rounded-lg" type="single" collapsible>
         <AccordionItem value="item-1" className="group data-[state=open]:bg-black1 hover:bg-black2 rounded-lg duration-300">
           <AccordionTrigger className="duration-300">
             <b>Step 1</b> <b className="pt-1 pb-2 font-normal text-center">{data[0].progression}</b>
@@ -109,148 +85,39 @@ export default function Home() {
           </div>
           </AccordionContent>
         </AccordionItem>
-      </Accordion>
-      <div className="flex flex-row space-x-8">
-        <Step2 value="a" index="1" image={image2} tools="Scissors, Manual" desc1="Use the Scissors to cut open bags 1-3." desc2="Read the Manual and begin with step 1-5."/>
-        <Step2 value="b" index="1" image={image3} tools="Yellow bricks, Blue bricks, Red bricks, Manual" desc1="Use the blue and yellow bricks and the Manual to complete steps 6-11." desc2="Read the Manual and use the red bricks to begin with steps 12 and 13."/>
-        <Step2 value="c" index="1" image={image4} tools="Manual" desc1="Take special note of the following pieces." desc2="Follow the Manual carefully for steps 14 and 15."/>
-      </div>
+      </Accordion> */}
+
       {isLoading ? (
         <div><h3 className="text-3xl font-bold uppercase text-gray-100">Loading...</h3></div>
-      ) : project && project.Steps[0] ? (
-        <Step 
-          value="a"
-          index={1}
-          title={project.Steps[0]}
-          image={project.Steps[3]}
-          tools={project.Steps[1]}
-          desc={project.Steps[2]}
-        />
-      ) : <></>}
+      ) : (
+        <div className="w-full space-y-16">
+          {projects?.map((project: any, index: any) => (
+            <div key={project.id} className="flex flex-col items-center w-full space-y-6">
+              <Header 
+                title={index + 1} 
+                value={project.title} 
+                subvalue={project.progression} 
+                size="medium" 
+              />
+              
+              <div className="flex flex-row flex-wrap gap-4 justify-center w-full px-4">
+                {project.Steps?.map((step: any, stepIndex: any) => (
+                  <div key={`${project.id}-${stepIndex}`} className="flex flex-row max-w-md">
+                    <Substep
+                      value={`${index + 1}.${stepIndex + 1}`}
+                      title={step.title}
+                      tools={step.tools}
+                      desc={step.action}
+                      image={step.raw_img}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   </div>
   );
 }
-
-export const data: Data[] = [
-  {
-      raw_imgs: [],
-      img_ids: [160],
-      progression: "All LEGO pieces are laid out in organized packets for assembly.",
-      step_index: 1,
-      step_id: "step_001",
-      user_id: "user_who_contributed",
-      time_interval: "2024-10-26 21:05:11.990211 to 2024-10-26 21:05:16.130469",
-      prev_step_id: "",
-      next_step_id: "step_002",
-      desc: "* Prepare a big, flat area as your workspace. * Take the contents out of the Lego Box. * Read the Manual and ensure all pieces are present."
-  },
-  {
-      raw_imgs: [],
-      img_ids: [456, 621, 408, 113],
-      progression: "Preparing lego pieces to begin building.",
-      step_index: 2,
-      step_id: "step_002",
-      user_id: "user_who_contributed",
-      time_interval: "2024-10-26 21:05:16.130469 to 2024-10-26 21:05:23.416128",
-      prev_step_id: "step_001",
-      next_step_id: "step_003",
-      desc: ""
-  },
-  {
-      raw_imgs: [],
-      img_ids: [160],
-      progression: "Attaching various colored bricks to form a structured framework.",
-      step_index: 1,
-      step_id: "step_001",
-      user_id: "user_who_contributed",
-      time_interval: "2024-10-26 21:05:11.990211 to 2024-10-26 21:05:16.130469",
-      prev_step_id: "",
-      next_step_id: "step_002",
-      desc: ""
-  },
-  {
-    raw_imgs: [],
-    img_ids: [160],
-    progression: "Attatching special pieces.",
-    step_index: 1,
-    step_id: "step_001",
-    user_id: "user_who_contributed",
-    time_interval: "2024-10-26 21:05:11.990211 to 2024-10-26 21:05:16.130469",
-    prev_step_id: "",
-    next_step_id: "step_002",
-    desc: ""
-},
-{
-    raw_imgs: [],
-    img_ids: [621, 408],
-    progression: "Attaching yellow and blue LEGO bricks to the existing structured framework.",
-    step_index: 3,
-    step_id: "step_003",
-    user_id: "user_who_contributed",
-    time_interval: "2024-10-26 21:05:18.431565 to 2024-10-26 21:05:20.774452",
-    prev_step_id: "step_002",
-    next_step_id: "step_004",
-    desc: ""
-},
-{
-    raw_imgs: [],
-    img_ids: [113],
-    progression: "Attaching blue LEGO bricks to the existing structured framework.",
-    step_index: 4,
-    step_id: "step_004",
-    user_id: "user_who_contributed",
-    time_interval: "2024-10-26 21:05:20.774452 to 2024-10-26 21:05:23.416128",
-    prev_step_id: "step_003",
-    next_step_id: null,
-    desc: ""
-},
-  {
-      raw_imgs: [],
-      img_ids: [160],
-      progression: "All LEGO pieces are laid out in organized packets for assembly.",
-      step_index: 1,
-      step_id: "step_001",
-      user_id: "user_who_contributed",
-      time_interval: "2024-10-26 21:05:11.990211 to 2024-10-26 21:05:16.130469",
-      prev_step_id: null,
-      next_step_id: "step_002",
-      desc: ""
-  },
-  {
-      raw_imgs: [],
-      img_ids: [456],
-      progression: "Assembling LEGO pieces together to form a structured framework.",
-      step_index: 2,
-      step_id: "step_002",
-      user_id: "user_who_contributed",
-      time_interval: "2024-10-26 21:05:16.130469 to 2024-10-26 21:05:18.431565",
-      prev_step_id: "step_001",
-      next_step_id: "step_003",
-      desc: ""
-  },
-  {
-      raw_imgs: [],
-      img_ids: [621, 408],
-      progression: "Attaching yellow and blue LEGO bricks to the existing structured framework.",
-      step_index: 3,
-      step_id: "step_003",
-      user_id: "user_who_contributed",
-      time_interval: "2024-10-26 21:05:18.431565 to 2024-10-26 21:05:20.774452",
-      prev_step_id: "step_002",
-      next_step_id: "step_004",
-      desc: ""
-  },
-  {
-      raw_imgs: [],
-      img_ids: [113],
-      progression: "Attaching blue LEGO bricks to the existing structured framework.",
-      step_index: 4,
-      step_id: "step_004",
-      user_id: "user_who_contributed",
-      time_interval: "2024-10-26 21:05:20.774452 to 2024-10-26 21:05:23.416128",
-      prev_step_id: "step_003",
-      next_step_id: null,
-      desc: ""
-  }
-]
