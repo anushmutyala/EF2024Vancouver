@@ -2,7 +2,7 @@
 from quart import Quart, request, jsonify
 from supabase import create_client, Client
 from openai import OpenAI
-from helpers import *
+from .helpers import *
 import asyncio
 # Initialize Flask app
 # app = Flask(__name__)
