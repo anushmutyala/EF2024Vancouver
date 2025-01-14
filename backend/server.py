@@ -51,7 +51,7 @@ async def home():
         <h1>Livestream</h1>
         <img id="image" src="" alt="Latest Image" width="500" height="500">
         <script>
-            const ws = new WebSocket('ws://' + window.location.host + '/ws');
+            const ws = new WebSocket('wss://' + window.location.host + '/ws');
             ws.onmessage = function(event) {
                 const data = JSON.parse(event.data);
                 document.getElementById('image').src = 'data:image/png;base64,' + data.base64_img;
