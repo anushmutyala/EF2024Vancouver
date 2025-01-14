@@ -1,5 +1,6 @@
 import asyncio
-import websockets
+# import websockets
+from quart import websocket
 import base64
 from picamzero import Camera
 from io import BytesIO
@@ -29,7 +30,9 @@ async def send_images():
                 image_base64 = base64.b64encode(buffer.read()).decode('utf-8')
 
                 # Send the image over WebSocket
-                await websocket.send_json({"base64_img": image_base64})
+                payload = json.dumps({'base64_img': image_base64})
+                # await websocket.send_json({"base64_img": image_base64})
+                await websocket.send(payload)
                 print("Image sent successfully!")
                 
                 # Wait 2.5 seconds before sending the next image
