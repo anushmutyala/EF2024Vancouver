@@ -11,8 +11,8 @@ latest_image = None
 def upload_image():
     global latest_image
     data = request.json
-    if 'image' in data:
-        latest_image = data['image']
+    if 'base64_img' in data:
+        latest_image = data['base64_img']
         return "Image received", 200
     else:
         return "No image found in request", 400
