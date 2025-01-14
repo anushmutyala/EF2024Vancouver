@@ -1,26 +1,50 @@
 "use client"
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./components/accordion";
 import { useEffect, useState } from 'react';
 import Header from "./components/Header";
 import Substep from "./components/substep";
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 
 export default function Home() {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [project, setProject] = useState<any>({});
+  const [steps, setSteps] = useState<Step[]>([]);
+  const [frames, setFrames] = useState<Frame[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  type Step = {
+  type Frame = {
+    id: string;
     title: string;
     tools: string[];
     action: string;
     raw_img: string;
   };
 
-  type Project = {
+  type Step = {
     id: string;
     title: string;
     progression: string;
-    Steps: Step[];
+    substeps: string[];
+  }
+
+  const handleCreateProject = async (values: any) => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/create_project`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+      const response = await res.json();
+      console.log(response);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+      window.location.reload();
+    };
   }
 
   const getProject = async () => {
@@ -29,11 +53,8 @@ export default function Home() {
       const res = await fetch(`/api/get_project`);
       const response = await res.json();
       if (response && response.length > 0) {
-        const projectsData = response.map((project: any) => ({
-          ...project,
-          Steps: Array.isArray(project.Steps) ? project.Steps : Object.values(project.Steps || {})
-        }));
-        setProjects(projectsData);
+        const projectData = response[0];
+        setProject(projectData);
 
       } else {
         console.log("No project data found");
@@ -45,11 +66,79 @@ export default function Home() {
     };
   }
 
+  const getSteps = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/get_steps`);
+      const response = await res.json();
+      if (response && response.length > 0) {
+        const stepsData = response.map((step: any) => ({
+          ...step,
+        }));
+
+        setSteps(stepsData);
+
+      } else {
+        console.log("No project data found");
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    };
+  }
+
+  const getFrames = async () => {
+    try {
+      setIsLoading(true);
+      const substeps = steps.flatMap(step => step.substeps);
+      if (substeps.length === 0) {
+        console.log("No substeps found");
+        return;
+      }
+      const queryString = `frameIds=${encodeURIComponent(JSON.stringify(substeps))}`;
+      
+      const res = await fetch(`/api/get_frames?${queryString}`);
+      const response = await res.json();
+      if (response && response.length > 0) {
+        const framesData = response.map((frame: any) => ({
+          ...frame,
+        }));
+
+        setFrames(framesData);
+
+      } else {
+        console.log("No frame data found");
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
     getProject();
-  }, [])
+    getSteps();
+  }, []);
+
+  useEffect(() => {
+    if (steps.length > 0) {
+      getFrames();
+    }
+  }, [steps]);
+
+  const getFramesForStep = (step: Step) => {
+    return frames.filter(frame => step.substeps.includes(frame.id));
+  };
+
+  const validationSchema = Yup.object({
+    title: Yup.string().required('Title is required'),
+    description: Yup.string().required('Description is required'),
+  });
 
   return (
+    
     <div className="flex flex-col justify-start items-start bg-black1 h-dvh p-12 w-full overflow-x-auto space-y-12">
       <nav className="w-full flex justify-between items-center px-8 bg-black1 text-gray-100">
         <div className="text-xl font-bold hover:text-sage2 duration-300 cursor-pointer">Home</div>
@@ -58,66 +147,67 @@ export default function Home() {
           <div className="text-xl font-bold hover:text-sage2 duration-300 cursor-pointer">Create</div>
         </div>
       </nav>
-      <h1 className="text-5xl font-bold uppercase text-gray-100 pl-7 pb-8">LEGO AT-AT Walker Construction Guide</h1>
-      <div className="flex flex-col justify-start items-center w-full">
-      {/* <Accordion className="min-w-lg max-w-3xl border-2 border-black2 rounded-lg" type="single" collapsible>
-        <AccordionItem value="item-1" className="group data-[state=open]:bg-black1 hover:bg-black2 rounded-lg duration-300">
-          <AccordionTrigger className="duration-300">
-            <b>Step 1</b> <b className="pt-1 pb-2 font-normal text-center">{data[0].progression}</b>
-          </AccordionTrigger>
-          <AccordionContent className="max-h-[65dvh] overflow-y-auto pr-4">
-          <div className="flex flex-col space-y-4">
-            <Header title="Tools: " value="Lego Box, Manual" size="small" colorClassName="accent1" />
-            <h3 className="text-2xl font-semibold text-center text-gray-100 pt-4">Action Items</h3>
-            <div className="border-sage2 border-[0.75px] rounded-lg" /> 
-            <div className="flex py-4">
-              <div className="w-1/3 rounded-lg">
-                <Image className="rounded-lg" src={image1} alt="Description 1" width={100} height={100} layout="responsive" />
-              </div>
-              <div className="w-2/3 pl-4 flex items-center">
-                <ul className="list-disc pl-5 space-y-1">
-                  <li className="text-md text-gray-100">Prepare a big, flat area as your workspace.</li>
-                  <li className="text-md text-gray-100">Take the contents out of the <span className="text-sage2 font-bold">Lego Box.</span></li>
-                  <li className="text-md text-gray-100">Read the <span className="text-sage2 font-bold">Manual</span> and ensure all pieces are present.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion> */}
 
-      {isLoading ? (
-        <div><h3 className="text-3xl font-bold uppercase text-gray-100">Loading...</h3></div>
-      ) : (
-        <div className="w-full space-y-16">
-          {projects?.map((project: any, index: any) => (
-            <div key={project.id} className="flex flex-col items-center w-full space-y-6">
-              <Header 
-                title={index + 1} 
-                value={project.title} 
-                subvalue={project.progression} 
-                size="medium" 
-              />
-              
-              <div className="flex flex-row flex-wrap gap-4 justify-center w-full px-4">
-                {project.Steps?.map((step: any, stepIndex: any) => (
-                  <div key={`${project.id}-${stepIndex}`} className="flex flex-row max-w-md">
-                    <Substep
-                      value={`${index + 1}.${stepIndex + 1}`}
-                      title={step.title}
-                      tools={step.tools}
-                      desc={step.action}
-                      image={step.raw_img}
-                    />
-                  </div>
-                ))}
-              </div>
+      {!project.title || isLoading ? (
+        <Formik
+          initialValues={{ title: '', description: '' }}
+          validationSchema={validationSchema}
+          onSubmit={(values, { setSubmitting }) => {
+            handleCreateProject(values);
+            setSubmitting(false);
+          }}
+        >
+        {({ isSubmitting }) => (
+          <Form className="flex flex-col items-center justify-center space-y-4 w-full">
+            <div className="w-2/5">
+              <h3 className="text-xl font-bold uppercase text-gray-100 pl-1 mt-6">Create Project</h3>
+              <Field type="text" name="title" className="mt-6 p-2 w-full rounded-lg bg-black1 border-2 border-black2 font-semibold text-gray-100 focus:border-sage2 focus:ring-0" placeholder="Title" />
+              <ErrorMessage name="title" component="div" className="mt-1 font-semibold text-red-500" />
+              <Field type="text" name="description" className="mt-6 p-2 w-full rounded-lg bg-black1 border-2 border-black2 font-semibold text-gray-100 focus:border-sage2 focus:ring-0" placeholder="Description" />
+              <ErrorMessage name="description" component="div" className="mt-1 font-semibold text-red-500" />
+              <button type="submit" disabled={isSubmitting} className="w-[15dvw] bg-black1 border-2 border-black2 text-gray-100 font-bold p-2 mt-8 rounded-lg hover:bg-black2 hover:scale-105 duration-300">
+                Submit
+              </button>
             </div>
-          ))}
+            
+          </Form>
+        )}
+        </Formik>
+      ) : (
+      <div className="flex flex-col justify-start items-center w-full">
+        <h1 className="text-5xl font-bold uppercase text-gray-100 mt-4 mb-16">{project.title}</h1>
+      
+        <div className="w-full space-y-16">
+          {steps?.map((step: Step, index: number) => {
+            const stepFrames = getFramesForStep(step);
+
+            return (
+              <div key={step.id} className="flex flex-col items-center w-full my-4">
+                <Header 
+                  title={index + 1} 
+                  value={step.title} 
+                  subvalue={step.progression} 
+                  size="medium" 
+                />
+                
+                <div className="flex flex-row flex-wrap gap-4 justify-center w-full px-4 mb-24">
+                  {stepFrames.map((frame: Frame, frameIndex: number) => (
+                    <div key={`${step.id}-${frame.id}`} className="flex flex-row max-w-md">
+                      <Substep
+                        value={`${index + 1}.${frameIndex + 1}`}
+                        tools={frame.tools}
+                        desc={frame.action}
+                        image={frame.raw_img}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
+      </div>
       )}
     </div>
-  </div>
   );
 }

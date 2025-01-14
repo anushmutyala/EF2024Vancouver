@@ -5,16 +5,17 @@ export async function GET() {
 
   try {
     const { data, error } = await supabase
-      .from('Projects')
+      .from('Steps')
       .select(`
         id,
+        substeps,
         title,
-        description
+        progression
       `)
       .order('id');
     
     if (error) {
-      console.error("Error from the project fetch:", error);
+      console.error("Error from the steps fetch:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     
@@ -25,9 +26,9 @@ export async function GET() {
     return NextResponse.json({ error: "No data found" }, { status: 404 });
 
   } catch (error) {
-    console.error("Error retrieving project:", error);
+    console.error("Error retrieving steps:", error);
     return NextResponse.json(
-      { error: "An error occurred while retrieving the project." }, 
+      { error: "An error occurred while retrieving the steps." }, 
       { status: 500 }
     );
   }
