@@ -1,5 +1,5 @@
 # from flask import Flask, request, jsonify
-from quart import Quart, request, jsonify
+from quart import Quart, request, jsonify, websocket
 from supabase import create_client, Client
 from openai import OpenAI
 from .helpers import *
@@ -19,23 +19,47 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 openai_client = OpenAI(api_key="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")
 
 # global var to store latest base64 image
-raw_img = None
 
+websocket_queues = set()
+
+@app.websocket('/ws')
+async def ws():
+    """WebSocket endpoint to handle live updates."""
+    global websocket_queues
+    queue = asyncio.Queue()
+    websocket_queues.add(queue)
+    try:
+        while True:
+            message = await queue.get()  # Wait for a message to send
+            # print(f"Sending WebSocket message: {message}")  # Debug: Verify what is being sent
+            await websocket.send_json(message)
+    except Exception:
+        print(f"WebSocket error: {e}")  # Debug: Log WebSocket errors
+    finally:
+        websocket_queues.remove(queue)
+        
 @app.route('/')
 async def home():
-    # return jsonify({"message": "Supabase Flask Server is running!"})
-    # return an html template from with the latest image in decoded_image_bytes, refreshes every 5 seconds
-    global raw_img
-    return f"""
+    """Render the HTML front page."""
+    return """
     <!DOCTYPE html>
     <html>
     <head>
         <title>Supabase Flask Server</title>
-        <meta http-equiv="refresh" content="5">
     </head>
     <body>
         <h1>Livestream</h1>
-        <img src="data:image/png;base64,{raw_img}" alt="Latest Image" width="500" height="500">
+        <img id="image" src="" alt="Latest Image" width="500" height="500">
+        <script>
+            const ws = new WebSocket('ws://' + window.location.host + '/ws');
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                document.getElementById('image').src = 'data:image/png;base64,' + data.base64_img;
+            };
+            ws.onerror = function(error) {
+                console.error("WebSocket error:", error);  // Debug: Log WebSocket errors
+            };
+        </script>
     </body>
     </html>
     """
@@ -52,7 +76,7 @@ async def home():
 
 @app.route('/insert_frames', methods=['POST'])
 async def insert_frames():
-    global raw_img
+    global connected_websockets
     try:
     #     print(f"Request Headers: {request.headers}")
     #     print(f"Request Content-Type: {request.content_type}")
@@ -96,6 +120,12 @@ async def insert_frames():
 
         # Insert data into the Supabase table
         response = supabase.table("Frames").insert(img_frame).execute()
+
+        # Notify connected WebSocket clients about the new image
+        if websocket_queues:
+            message = {"base64_img": raw_img}
+            for queue in websocket_queues:
+                await queue.put(message)
 
         return jsonify({"message": "Row inserted successfully", "data": response.data}), 201
         # return jsonify({"message": "success"}), 201
