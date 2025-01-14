@@ -129,4 +129,4 @@ async def trigger_flowchart():
         print(f"Error triggering summary: {e}")
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
