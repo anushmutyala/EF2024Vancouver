@@ -1,18 +1,8 @@
 # all imports 
 
 import base64
-import os
-# from openai import OpenAI
-from PIL import Image
-from ultralytics import YOLO, FastSAM
-import matplotlib.pyplot as plt
-import torch
-import clip  # pip install git+https://github.com/openai/CLIP.git
 import json
 import re
-import random
-import datetime
-from pprint import pprint
 # from supabase import create_client, Client
 
 # client = OpenAI(api_key="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")

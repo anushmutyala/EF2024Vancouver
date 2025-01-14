@@ -2,7 +2,6 @@
 from quart import Quart, request, jsonify
 from supabase import create_client, Client
 from openai import OpenAI
-import json
 from helpers import *
 import asyncio
 # Initialize Flask app
@@ -130,4 +129,4 @@ async def trigger_flowchart():
         print(f"Error triggering summary: {e}")
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run()
