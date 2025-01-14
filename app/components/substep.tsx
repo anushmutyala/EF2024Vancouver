@@ -32,7 +32,7 @@ export default function Substep(props: {value: any, image: any, tools: any, desc
   const accordionValue = `step-${props.value}`;
 
   return (
-    <Accordion className="min-w-md max-w-3xl" type="single" collapsible>
+    <Accordion className="min-w-md" type="single" collapsible>
         <AccordionItem value={accordionValue} className="border-2 border-black2 rounded-lg data-[state=open]:bg-black1 hover:bg-black2 transition-all duration-300">
           <AccordionTrigger className="duration-300">
             <b>Step <span>{props.value}</span></b>
@@ -58,6 +58,7 @@ export default function Substep(props: {value: any, image: any, tools: any, desc
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+      
     );
 }
 

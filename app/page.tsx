@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import Substep from "./components/substep";
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { RefreshCcw } from 'lucide-react';
 
 export default function Home() {
   const [project, setProject] = useState<any>({});
@@ -128,6 +129,10 @@ export default function Home() {
     }
   }, [steps]);
 
+  const handleRefresh = () => {
+    window.location.reload();
+  };  
+
   const getFramesForStep = (step: Step) => {
     return frames.filter(frame => step.substeps.includes(frame.id));
   };
@@ -175,6 +180,13 @@ export default function Home() {
         </Formik>
       ) : (
       <div className="flex flex-col justify-start items-center w-full">
+        <button 
+          onClick={handleRefresh}
+          className="fixed bottom-10 right-10 p-3 bg-black2 hover:bg-sage1 rounded-full shadow-lg hover:scale-110 duration-300 z-50"
+        >
+          <RefreshCcw className="w-6 h-6 text-gray-100" />
+        </button>
+
         <h1 className="text-5xl font-bold uppercase text-gray-100 mt-4 mb-16">{project.title}</h1>
       
         <div className="w-full space-y-16">
@@ -183,6 +195,7 @@ export default function Home() {
 
             return (
               <div key={step.id} className="flex flex-col items-center w-full my-4">
+                
                 <Header 
                   title={index + 1} 
                   value={step.title} 
@@ -190,9 +203,9 @@ export default function Home() {
                   size="medium" 
                 />
                 
-                <div className="flex flex-row flex-wrap gap-4 justify-center w-full px-4 mb-24">
+                <div className="flex flex-row flex-wrap gap-4 justify-center w-full px-4 mb-16">
                   {stepFrames.map((frame: Frame, frameIndex: number) => (
-                    <div key={`${step.id}-${frame.id}`} className="flex flex-row max-w-md">
+                    <div key={`${step.id}-${frame.id}`} className="flex flex-row">
                       <Substep
                         value={`${index + 1}.${frameIndex + 1}`}
                         tools={frame.tools}
