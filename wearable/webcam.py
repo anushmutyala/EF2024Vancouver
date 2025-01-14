@@ -10,7 +10,8 @@ cam = Camera()
 cam.start_preview()
 
 # Server URL
-server_url = "http://127.0.0.1:5000/image"
+# server_url = "http://127.0.0.1:5000/image"
+server_url = "https://ef2024vancouver.onrender.com/insert_frames"
 
 while True:
     try:
@@ -28,7 +29,7 @@ while True:
 
         # Send the image to the server
         response = requests.post(server_url, json={"base64_img": image_base64})
-        if response.status_code == 200:
+        if response.status_code == 200 or 201:
             print("Image sent successfully!")
         else:
             print(f"Failed to send image: {response.status_code}")
