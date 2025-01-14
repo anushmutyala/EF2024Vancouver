@@ -1,5 +1,5 @@
-import time
-import requests
+import asyncio
+import websockets
 import base64
 from picamzero import Camera
 from io import BytesIO
@@ -9,34 +9,34 @@ from PIL import Image
 cam = Camera()
 cam.start_preview()
 
-# Server URL
-# server_url = "http://127.0.0.1:5000/image"
-server_url = "https://ef2024vancouver.onrender.com/insert_frames"
+# WebSocket server URL
+ws_url = "wss://ef2024vancouver.onrender.com/image_stream"
 
-while True:
-    try:
-        # Capture an image
-        frame = cam.capture_array()  # Capture the image as a numpy array
+async def send_images():
+    async with websockets.connect(ws_url) as websocket:
+        while True:
+            try:
+                # Capture an image
+                frame = cam.capture_array()  # Capture the image as a numpy array
 
-        # Save the image to a BytesIO buffer as JPEG
-        buffer = BytesIO()
-        image = Image.fromarray(frame)  # Convert the numpy array to a PIL Image
-        image.save(buffer, format="JPEG")
-        buffer.seek(0)
+                # Save the image to a BytesIO buffer as JPEG
+                buffer = BytesIO()
+                image = Image.fromarray(frame)  # Convert the numpy array to a PIL Image
+                image.save(buffer, format="JPEG")
+                buffer.seek(0)
 
-        # Convert the image to base64
-        image_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+                # Convert the image to base64
+                image_base64 = base64.b64encode(buffer.read()).decode('utf-8')
 
-        # Send the image to the server
-        response = requests.post(server_url, json={"base64_img": image_base64})
-        if response.status_code == 200 or 201:
-            print("Image sent successfully!")
-            print(response)
-        else:
-            print(f"Failed to send image: {response.status_code}")
+                # Send the image over WebSocket
+                await websocket.send_json({"base64_img": image_base64})
+                print("Image sent successfully!")
+                
+                # Wait 2.5 seconds before sending the next image
+                await asyncio.sleep(2.5)
 
-        # Wait 5 seconds before capturing the next image
-        time.sleep(2.5)
+            except Exception as e:
+                print(f"An error occurred: {e}")
 
-    except Exception as e:
-        print(f"An error occurred: {e}")
+# Run the WebSocket client
+asyncio.run(send_images())

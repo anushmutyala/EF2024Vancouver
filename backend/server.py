@@ -33,7 +33,7 @@ async def ws():
             message = await queue.get()  # Wait for a message to send
             # print(f"Sending WebSocket message: {message}")  # Debug: Verify what is being sent
             await websocket.send_json(message)
-    except Exception:
+    except Exception as e:
         print(f"WebSocket error: {e}")  # Debug: Log WebSocket errors
     finally:
         websocket_queues.remove(queue)
@@ -132,6 +132,35 @@ async def insert_frames():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.websocket('/image_stream')
+async def image_stream():
+    """WebSocket endpoint to receive and broadcast image frames."""
+    global websocket_queues
+    queue = asyncio.Queue()
+    websocket_queues.add(queue)
+    try:
+        while True:
+            # Receive image data from the client
+            data = await websocket.receive_json()
+            raw_img = data.get("base64_img")
+            
+            # Insert the image frame into the Supabase database (optional)
+            img_frame = {"raw_img": raw_img}
+            try:
+                response = supabase.table("Frames").insert(img_frame).execute()
+            except Exception as e:
+                print(f"Database insertion error: {e}")
+            
+            # Broadcast the image to all connected WebSocket clients
+            message = {"base64_img": raw_img}
+            for q in websocket_queues:
+                await q.put(message)
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+    finally:
+        websocket_queues.remove(queue)
+
 
 # Example route to update data in a Supabase table
 # @app.route('/update_data', methods=['PUT'])
