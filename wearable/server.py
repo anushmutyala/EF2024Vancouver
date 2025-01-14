@@ -1,39 +1,42 @@
-# Flask Backend Script
-from flask import Flask, request, send_file
-from io import BytesIO
-import threading
+from flask import Flask, request, render_template_string
+import base64
 
 app = Flask(__name__)
 
-# Variable to store the latest image data
+# Variable to store the latest image
 latest_image = None
-image_lock = threading.Lock()
 
-@app.route('/upload', methods=['POST'])
+# Route to handle image upload
+@app.route('/image', methods=['POST'])
 def upload_image():
     global latest_image
-    if 'image' not in request.files:
-        return "No image provided", 400
+    data = request.json
+    if 'image' in data:
+        latest_image = data['image']
+        return "Image received", 200
+    else:
+        return "No image found in request", 400
 
-    # Save the uploaded image data to the variable
-    with image_lock:
-        latest_image = BytesIO(request.files['image'].read())
-
-    return "Image received", 200
-
-@app.route('/display', methods=['GET'])
+# Route to display the latest image
+@app.route('/')
 def display_image():
-    global latest_image
-    with image_lock:
-        if latest_image is None:
-            return "No image available", 404
-
-        latest_image.seek(0)
-        return send_file(latest_image, mimetype='image/jpeg')
-
-@app.route('/', methods=['GET'])
-def landing():
-    return "hi"
+    if latest_image:
+        # Render the latest image in an HTML template
+        html_template = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Latest Image</title>
+        </head>
+        <body>
+            <h1>Latest Image</h1>
+            <img src="data:image/jpeg;base64,{latest_image}" alt="Latest Image"/>
+        </body>
+        </html>
+        """
+        return render_template_string(html_template)
+    else:
+        return "No image available yet."
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

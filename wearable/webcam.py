@@ -1,50 +1,40 @@
-import cv2
 import time
 import requests
+import base64
+from picamzero import Camera
 from io import BytesIO
+from PIL import Image
 
-# Server URL (replace with your actual server address)
-SERVER_URL = "http://127.0.0.1:5000/upload"
+# Initialize the camera
+cam = Camera()
+cam.start_preview()
 
-# Open the camera (camera index 0 typically refers to the Pi camera)
-cap = cv2.VideoCapture(0)
-#time.sleep(5)  # Wait 2 seconds for the camera to initialize
+# Server URL
+server_url = "http://127.0.0.1:5000/image"
 
-# Set resolution (adjust as needed)
-#cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-#cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+while True:
+    try:
+        # Capture an image
+        frame = cam.capture_array()  # Capture the image as a numpy array
 
-if not cap.isOpened():
-    print("Error: Could not open the camera.")
-    exit()
+        # Save the image to a BytesIO buffer as JPEG
+        buffer = BytesIO()
+        image = Image.fromarray(frame)  # Convert the numpy array to a PIL Image
+        image.save(buffer, format="JPEG")
+        buffer.seek(0)
 
-try:
-    while True:
-        # Capture a frame from the camera
-        ret, frame = cap.read()
-        if not ret:
-            print("Error: Could not read a frame.")
-            break
-
-        # Encode the frame as a JPEG image
-        _, encoded_image = cv2.imencode('.jpg', frame)
+        # Convert the image to base64
+        image_base64 = base64.b64encode(buffer.read()).decode('utf-8')
 
         # Send the image to the server
-        response = requests.post(SERVER_URL, files={"image": BytesIO(encoded_image.tobytes())})
-
+        response = requests.post(server_url, json={"base64_img": image_base64})
         if response.status_code == 200:
-            print("Image successfully sent to the server.")
+            print("Image sent successfully!")
         else:
             print(f"Failed to send image: {response.status_code}")
 
-        # Wait 5 seconds before capturing the next frame
+        # Wait 5 seconds before capturing the next image
         time.sleep(5)
 
-except KeyboardInterrupt:
-    print("Script stopped by user.")
-
-finally:
-    # Release the camera
-    cap.release()
-    cv2.destroyAllWindows()
-
+    except Exception as e:
+        print(f"An error occurred: {e}")
