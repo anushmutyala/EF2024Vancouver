@@ -152,7 +152,7 @@ async def trigger_flowchart():
         # print('steps: ', steps)
         # response = supabase.table("Steps").insert(steps).execute()
         # rewrite the Steps table with the new steps
-        response = supabase.table("Steps").upsert(steps, "id").execute()
+        response = supabase.table("Steps").upsert(steps).execute()
 
         return jsonify({"message": "Flowchart generated successfully", "data": response.data}), 201
         

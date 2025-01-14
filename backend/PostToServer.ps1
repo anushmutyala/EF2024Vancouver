@@ -1,7 +1,7 @@
 # PostToServer.ps1 - A PowerShell script to send a POST request to a Flask server
 
 # Define the URL of your endpoint
-$Url = "http://127.0.0.1:5000/insert_frames"
+$Url = "https://ef2024vancouver.onrender.com/insert_frames"
 
 # Create the JSON payload
 $Body = @{
