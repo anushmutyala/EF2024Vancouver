@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from supabase import create_client, Client
 from openai import OpenAI
 import json
-
+from helpers import *
 # Initialize Flask app
 app = Flask(__name__)
 
@@ -33,29 +33,34 @@ def insert_frames():
     try:
         # Parse the request body
         data = request.json
-        # timestamp = data.get("timestamp")
-        tools = data.get("tools")  # List of text
-        action = data.get("action")
-        raw_img = data.get("raw_img")  # JSON object 
+        raw_img = data.get("base64_img")  # JSON object 
 
-        # tools = ["huzz", "bruzz"]
-        # action = "ts(this) nod tuff"
-        # raw_img is a json binary
-        # raw_img = "visiduzz"
+        # get the last img frame from the Frames table
+        try:
+            response = supabase.table("Frames").select("*").order("id", desc=True).limit(1).execute()
+            prev_tools = response.data[0]['tools']
+            prev_action = response.data[0]['action']
+        except Exception as e:
+            prev_tools = []
+            prev_action = ""
+        
+        img_frame = getImageData(openai_client, raw_img, "description_text", img_schema, prev_action, prev_tools)
+        pprint(img_frame)
 
         # Validation (optional but recommended)
         # if not timestamp or not isinstance(tools, list) or not action or not raw_img:
         #     return jsonify({"error": "Invalid or missing fields"}), 400
 
         # Insert data into the Supabase table
-        response = supabase.table("Frames").insert({
-            # "timestamp": timestamp,
-            "tools": tools,
-            "action": action,
-            "raw_img": raw_img
-        }).execute()
+        # response = supabase.table("Frames").insert({
+        #     # "timestamp": timestamp,
+        #     "tools": tools,
+        #     "action": action,
+        #     "raw_img": raw_img
+        # }).execute()
 
-        return jsonify({"message": "Row inserted successfully", "data": response.data}), 201
+        # return jsonify({"message": "Row inserted successfully", "data": response.data}), 201
+        return jsonify({"message": "success"}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

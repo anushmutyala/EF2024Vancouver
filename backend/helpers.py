@@ -42,10 +42,15 @@ def encode_image(image_path):
     return base64.b64encode(image_file.read()).decode('utf-8')
   
 
-def getImageData(client, base64_image, description_text, target_schema, action_context=None):
+def getImageData(client, base64_image, description_text, target_schema, action_context=None, tool_context=None):
     #handling the text description passed in
     if description_text and action_context:
-        text = "I am currently working on: {description_text}. For context, the action/operation done prior to this was: {action_context}. Based on the description I gave you as well the context of the task before this, generate a json schema in the format provided that encapsulates this step in a manufacturing procedure: {schema}".format(description_text=description_text, action_context=action_context, schema=target_schema)
+        text = "I am currently working on: {description_text}. For context, the action/operation done prior to this was: {action_context}. Additionally, the tools used were: {tool_context}. Based on the description I gave you as well the context of the task before this, generate a json schema in the format provided that encapsulates this step in a manufacturing procedure: {schema}".format(
+           description_text=description_text, 
+           action_context=action_context, 
+           schema=target_schema, 
+           tool_context=tool_context
+           )
     else:
         text = "I am currently working on: {description_text}. Based on this image (first of the project) as well the context of this project generate a json schema in the format provided that encapsulates this step in a manufacturing procedure: {schema}".format(description_text=description_text, schema=target_schema)
 
@@ -83,4 +88,6 @@ def getImageData(client, base64_image, description_text, target_schema, action_c
     # json_data["raw_img"] = base64_image
     
     return json_data
+
+
 
