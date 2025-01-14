@@ -1,5 +1,5 @@
 # from flask import Flask, request, jsonify
-from quart import Quart, request, jsonify, websocket
+from quart import Quart, request, jsonify
 from supabase import create_client, Client
 from openai import OpenAI
 from .helpers import *
@@ -19,47 +19,23 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 openai_client = OpenAI(api_key="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")
 
 # global var to store latest base64 image
+raw_img = None
 
-websocket_queues = set()
-
-@app.websocket('/ws')
-async def ws():
-    """WebSocket endpoint to handle live updates."""
-    global websocket_queues
-    queue = asyncio.Queue()
-    websocket_queues.add(queue)
-    try:
-        while True:
-            message = await queue.get()  # Wait for a message to send
-            # print(f"Sending WebSocket message: {message}")  # Debug: Verify what is being sent
-            await websocket.send_json(message)
-    except Exception as e:
-        print(f"WebSocket error: {e}")  # Debug: Log WebSocket errors
-    finally:
-        websocket_queues.remove(queue)
-        
 @app.route('/')
 async def home():
-    """Render the HTML front page."""
-    return """
+    # return jsonify({"message": "Supabase Flask Server is running!"})
+    # return an html template from with the latest image in decoded_image_bytes, refreshes every 5 seconds
+    global raw_img
+    return f"""
     <!DOCTYPE html>
     <html>
     <head>
         <title>Supabase Flask Server</title>
+        <meta http-equiv="refresh" content="5">
     </head>
     <body>
         <h1>Livestream</h1>
-        <img id="image" src="" alt="Latest Image" width="500" height="500">
-        <script>
-            const ws = new WebSocket('wss://' + window.location.host + '/ws');
-            ws.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                document.getElementById('image').src = 'data:image/png;base64,' + data.base64_img;
-            };
-            ws.onerror = function(error) {
-                console.error("WebSocket error:", error);  // Debug: Log WebSocket errors
-            };
-        </script>
+        <img src="data:image/png;base64,{raw_img}" alt="Latest Image" width="500" height="500">
     </body>
     </html>
     """
@@ -76,7 +52,7 @@ async def home():
 
 @app.route('/insert_frames', methods=['POST'])
 async def insert_frames():
-    global connected_websockets
+    global raw_img
     try:
     #     print(f"Request Headers: {request.headers}")
     #     print(f"Request Content-Type: {request.content_type}")
@@ -121,75 +97,11 @@ async def insert_frames():
         # Insert data into the Supabase table
         response = supabase.table("Frames").insert(img_frame).execute()
 
-        # Notify connected WebSocket clients about the new image
-        if websocket_queues:
-            message = {"base64_img": raw_img}
-            for queue in websocket_queues:
-                await queue.put(message)
-
         return jsonify({"message": "Row inserted successfully", "data": response.data}), 201
         # return jsonify({"message": "success"}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-@app.websocket('/image_stream')
-async def image_stream():
-    """WebSocket endpoint to receive and broadcast image frames."""
-    global websocket_queues
-    queue = asyncio.Queue()
-    websocket_queues.add(queue)
-    try:
-        while True:
-            # Receive image data from the client
-            data = await websocket.receive_json()
-            raw_img = data.get("base64_img")
-            
-            # get the last img frame from the Frames table
-            try:
-                response = supabase.table("Frames").select("tools, action, id").order("id", desc=True).limit(1).execute()
-                if len(response.data) == 0:
-                    prev_tools = None
-                    prev_action = None
-                    prev_id = -1
-                else:
-                    prev_tools = response.data[0]['tools']
-                    prev_action = response.data[0]['action']
-                    prev_id = int(response.data[0]['id'])
-                # get project description from Projects table
-                response = supabase.table("Projects").select("description").execute()
-                description_text = response.data[0]['description']
-            except Exception as e:
-                prev_tools = None
-                prev_action = None
-                prev_id = -1
-            
-            img_frame = getImageData(openai_client, raw_img, description_text, img_schema, prev_action, prev_tools)
-
-            img_frame['id'] = prev_id + 1
-            print('img_frame: ', img_frame)
-            img_frame['raw_img'] = raw_img
-
-            if img_frame['id'] % 5 == 0:
-                asyncio.create_task(trigger_flowchart())
-
-            # Validation (optional but recommended)
-            # if not timestamp or not isinstance(tools, list) or not action or not raw_img:
-            #     return jsonify({"error": "Invalid or missing fields"}), 400
-
-            # Insert data into the Supabase table
-            response = supabase.table("Frames").insert(img_frame).execute()
-
-            # Notify connected WebSocket clients about the new image
-            if websocket_queues:
-                message = {"base64_img": raw_img}
-                for queue in websocket_queues:
-                    await queue.put(message)
-    except Exception as e:
-        print(f"WebSocket error: {e}")
-    finally:
-        websocket_queues.remove(queue)
-
 
 # Example route to update data in a Supabase table
 # @app.route('/update_data', methods=['PUT'])
