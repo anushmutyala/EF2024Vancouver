@@ -75,6 +75,8 @@ async def insert_frames():
                 prev_id = int(response.data[0]['id'])
             # get project description from Projects table
             response = supabase.table("Projects").select("description").execute()
+            if len(response.data) == 0:
+                return jsonify({"error": "No projects found"}), 400
             description_text = response.data[0]['description']
         except Exception as e:
             prev_tools = None
@@ -87,7 +89,7 @@ async def insert_frames():
         print('img_frame: ', img_frame)
         img_frame['raw_img'] = raw_img
 
-        if img_frame['id'] % 5 == 0:
+        if img_frame['id'] % 3 == 0:
             asyncio.create_task(trigger_flowchart())
 
         # Validation (optional but recommended)
