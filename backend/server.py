@@ -79,6 +79,7 @@ async def insert_frames():
             # get project description from Projects table
             response = supabase.table("Projects").select("description").execute()
             if len(response.data) == 0:
+                print('No projects found')
                 return jsonify({"error": "No projects found"}), 400
             description_text = response.data[0]['description']
         except Exception as e:
@@ -150,9 +151,9 @@ async def stop():
         stop = not stop
         
         if stop:
-            return jsonify({"message": "stream stopped"}), 200
+            return jsonify({"message": "stream stopped", "stop": stop}), 200
         else:
-            return jsonify({"message": "stream started"}), 200
+            return jsonify({"message": "stream started", "stop": stop}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
