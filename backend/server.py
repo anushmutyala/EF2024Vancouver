@@ -18,8 +18,9 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 openai_client = OpenAI(api_key="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")
 
-# global var to store latest base64 image
+# global vars
 raw_img = None
+stop = False
 
 @app.route('/')
 async def home():
@@ -52,8 +53,10 @@ async def home():
 
 @app.route('/insert_frames', methods=['POST'])
 async def insert_frames():
-    global raw_img
+    global raw_img, stop
     try:
+        if stop:
+            return jsonify({"message": "stream stopped"}), 200
     #     print(f"Request Headers: {request.headers}")
     #     print(f"Request Content-Type: {request.content_type}")
     #     print(f"Request Data: {request.data.decode('utf-8')}")
@@ -137,6 +140,21 @@ async def insert_frames():
 #         return jsonify({"message": "Data deleted successfully!", "response": response.data})
 #     except Exception as e:
 #         return jsonify({"error": str(e)}), 500
+
+# make a route that stops all supabase processes
+@app.route('/stop', methods=['GET'])
+async def stop():
+    try:
+        global stop
+        # stop the supabase client
+        stop = not stop
+        
+        if stop:
+            return jsonify({"message": "stream stopped"}), 200
+        else:
+            return jsonify({"message": "stream started"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Function to trigger the summary API route
 async def trigger_flowchart():
