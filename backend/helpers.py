@@ -5,8 +5,6 @@ import json
 import re
 # from supabase import create_client, Client
 
-# client = OpenAI(api_key="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")
-
 # per img schema -> img_idx will be inserted after openai call
 img_schema = """{
     "tools": [list of tools in use in this image],

@@ -2,6 +2,8 @@
 from quart import Quart, request, jsonify
 from supabase import create_client, Client
 from openai import OpenAI
+import os
+from dotenv import load_dotenv
 from .helpers import *
 import asyncio
 # Initialize Flask app
@@ -9,14 +11,15 @@ import asyncio
 
 # Initialize Quart app
 app = Quart(__name__)
+load_dotenv()
 
 # Supabase configuration
-SUPABASE_URL = "https://hcrkjwcuigvggxkipdsj.supabase.co/"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhjcmtqd2N1aWd2Z2d4a2lwZHNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY2MjY0ODMsImV4cCI6MjA1MjIwMjQ4M30.QvVRnjvDNdSIPJ07kwApwcVN28He-M1uJjhMFaTrFkk"
+SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+SUPABASE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 
 # Initialize Supabase client
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-openai_client = OpenAI(api_key="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")
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # global var to store latest base64 image
 raw_img = None
